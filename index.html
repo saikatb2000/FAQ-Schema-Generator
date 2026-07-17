@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ Schema Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2430;
+    --paper:#F3EFE6;
+    --paper-white:#FBF9F4;
+    --brass:#B8934A;
+    --brass-dark:#8F6E32;
+    --sage:#6E8471;
+    --line:#D8D0BF;
+    --error:#B0503F;
+    --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(27,36,48,0.05) 1px, transparent 0);
+    background-size:22px 22px;
+  }
+
+  a{color:inherit;}
+
+  /* ---------- Header ---------- */
+  header{
+    padding:56px 6vw 40px;
+    border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--brass-dark);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:7px;height:7px;
+    background:var(--brass);
+    border-radius:50%;
+    display:inline-block;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    font-size:clamp(34px,5.4vw,64px);
+    line-height:1.02;
+    margin:0 0 18px;
+    letter-spacing:-0.01em;
+    max-width:16ch;
+  }
+  h1 em{
+    font-style:italic;
+    color:var(--brass-dark);
+  }
+  header p.sub{
+    font-size:16px;
+    line-height:1.6;
+    color:#4A4A44;
+    max-width:52ch;
+    margin:0;
+  }
+  header p.sub code{
+    font-family:'IBM Plex Mono',monospace;
+    background:var(--paper-white);
+    border:1px solid var(--line);
+    padding:1px 6px;
+    border-radius:var(--radius);
+    font-size:13.5px;
+  }
+
+  /* ---------- Layout ---------- */
+  main{
+    padding:48px 6vw 100px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:36px;
+    align-items:start;
+  }
+  @media (max-width:900px){
+    main{grid-template-columns:1fr;}
+  }
+
+  .panel{
+    background:var(--paper-white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    position:relative;
+  }
+  .panel-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding:18px 22px;
+    border-bottom:1px solid var(--line);
+  }
+  .panel-head h2{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    margin:0;
+    color:var(--ink);
+  }
+  .panel-head .count{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--sage);
+  }
+
+  /* ---------- Input panel ---------- */
+  textarea{
+    width:100%;
+    min-height:420px;
+    border:none;
+    background:transparent;
+    resize:vertical;
+    padding:22px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13.5px;
+    line-height:1.65;
+    color:var(--ink);
+    outline:none;
+  }
+  textarea::placeholder{color:#A9A296;}
+
+  .panel-foot{
+    display:flex;
+    gap:10px;
+    padding:16px 22px 22px;
+    flex-wrap:wrap;
+  }
+
+  button{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    padding:11px 18px;
+    border-radius:var(--radius);
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper-white);
+    cursor:pointer;
+    transition:transform .12s ease, background .12s ease;
+  }
+  button:hover{background:#33404F;}
+  button:active{transform:translateY(1px);}
+  button.ghost{
+    background:transparent;
+    color:var(--ink);
+    border:1px solid var(--line);
+  }
+  button.ghost:hover{background:var(--paper);}
+  button:disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+  }
+  button.brass{
+    background:var(--brass);
+    border-color:var(--brass);
+    color:#221A0C;
+  }
+  button.brass:hover{background:var(--brass-dark);color:var(--paper-white);}
+
+  .status-line{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--sage);
+    padding:0 22px 18px;
+    min-height:16px;
+  }
+  .status-line.err{color:var(--error);}
+
+  /* ---------- Output panel ---------- */
+  .tabs{
+    display:flex;
+    border-bottom:1px solid var(--line);
+  }
+  .tab{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:14px 20px;
+    cursor:pointer;
+    color:#8B8578;
+    border-right:1px solid var(--line);
+    user-select:none;
+  }
+  .tab.active{
+    color:var(--ink);
+    background:var(--paper);
+  }
+
+  .output-body{min-height:420px;}
+
+  #cardsView{
+    padding:20px 22px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .empty-state{
+    padding:60px 22px;
+    text-align:center;
+    color:#A9A296;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    line-height:1.8;
+  }
+  .qa-card{
+    border:1px solid var(--line);
+    border-left:3px solid var(--brass);
+    background:var(--paper-white);
+    border-radius:var(--radius);
+    padding:14px 16px;
+    position:relative;
+  }
+  .qa-card .tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    color:var(--brass-dark);
+    letter-spacing:0.08em;
+    display:block;
+    margin-bottom:6px;
+  }
+  .qa-card .q{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    font-size:16.5px;
+    margin:0 0 6px;
+    line-height:1.3;
+  }
+  .qa-card .a{
+    font-size:14px;
+    line-height:1.55;
+    color:#3E3E38;
+    margin:0;
+  }
+
+  pre#jsonView{
+    margin:0;
+    padding:22px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    line-height:1.6;
+    white-space:pre-wrap;
+    word-break:break-word;
+    max-height:640px;
+    overflow:auto;
+    color:#2A3341;
+  }
+  .hidden{display:none !important;}
+
+  .jkey{color:var(--brass-dark);}
+  .jstr{color:var(--sage);}
+
+  /* ---------- Format note ---------- */
+  .note{
+    margin:0 6vw 90px;
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+    padding:22px 26px;
+    display:grid;
+    grid-template-columns:auto 1fr;
+    gap:22px;
+    align-items:start;
+  }
+  @media (max-width:700px){ .note{grid-template-columns:1fr;} }
+  .note .label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--brass-dark);
+    white-space:nowrap;
+    padding-top:3px;
+  }
+  .note-example{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    line-height:1.75;
+    color:#4A4A44;
+    background:var(--paper-white);
+    border:1px solid var(--line);
+    padding:14px 16px;
+    border-radius:var(--radius);
+  }
+  .note-example .q{color:var(--ink);font-weight:600;}
+  .note-example .a{color:#6E6A5E;}
+
+  footer{
+    padding:26px 6vw 40px;
+    border-top:1px solid var(--line);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:#9A927F;
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  /* focus visibility */
+  button:focus-visible, textarea:focus-visible, .tab:focus-visible{
+    outline:2px solid var(--brass-dark);
+    outline-offset:2px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">FAQ Schema Generator</div>
+  <h1>Paste questions and answers.<br>Get <em>FAQPage</em> markup.</h1>
+  <p class="sub">Drop in a plain-text block of alternating questions and answers — one line each — and this generates valid <code>schema.org/FAQPage</code> JSON&#8209;LD, ready to paste into your <code>&lt;head&gt;</code>.</p>
+</header>
+
+<main>
+  <!-- INPUT PANEL -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>01 — Input</h2>
+      <span class="count" id="inputCount">0 lines</span>
+    </div>
+    <textarea id="inputArea" spellcheck="false" placeholder="When should retailers start planning Christmas campaigns?
+Most successful retailers begin planning between July and September to allow enough time for creative development, production and installation before peak trading.
+
+Why is early Christmas campaign planning important?
+Early planning reduces production pressure, improves supplier availability and gives businesses more flexibility when launching seasonal campaigns."></textarea>
+    <div class="panel-foot">
+      <button id="generateBtn">Generate schema</button>
+      <button class="ghost" id="loadSampleBtn" type="button">Load sample</button>
+      <button class="ghost" id="clearBtn" type="button">Clear</button>
+    </div>
+    <div class="status-line" id="statusLine"></div>
+  </section>
+
+  <!-- OUTPUT PANEL -->
+  <section class="panel">
+    <div class="tabs">
+      <div class="tab active" data-tab="cards">Preview</div>
+      <div class="tab" data-tab="json">JSON&#8209;LD</div>
+    </div>
+    <div class="panel-head" style="border-top:0;">
+      <h2 id="outputHeading">Parsed pairs</h2>
+      <span class="count" id="outputCount">0 pairs</span>
+    </div>
+    <div class="output-body">
+      <div id="cardsView">
+        <div class="empty-state" id="emptyState">No questions yet.<br>Paste your Q&amp;A block on the left and hit "Generate schema".</div>
+      </div>
+      <pre id="jsonView" class="hidden"></pre>
+    </div>
+    <div class="panel-foot" id="outputActions" style="display:none;">
+      <button class="brass" id="copyBtn" type="button">Copy JSON&#8209;LD</button>
+      <button class="ghost" id="copyScriptBtn" type="button">Copy as &lt;script&gt; tag</button>
+      <button class="ghost" id="downloadBtn" type="button">Download .json</button>
+    </div>
+  </section>
+</main>
+
+<div class="note">
+  <span class="label">Expected format</span>
+  <div class="note-example">
+    <div class="q">Question line ending in a question mark?</div>
+    <div class="a">Answer text on the very next non-empty line.</div>
+    <br>
+    <div class="q">Next question?</div>
+    <div class="a">Its answer, and so on — pairs can be separated by blank lines or not, it doesn't matter.</div>
+  </div>
+</div>
+
+<footer>
+  <span>FAQ Schema Generator — runs entirely in your browser. Nothing is uploaded.</span>
+  <span>schema.org/FAQPage</span>
+</footer>
+
+<script>
+(function(){
+  const inputArea = document.getElementById('inputArea');
+  const inputCount = document.getElementById('inputCount');
+  const outputCount = document.getElementById('outputCount');
+  const statusLine = document.getElementById('statusLine');
+  const cardsView = document.getElementById('cardsView');
+  const jsonView = document.getElementById('jsonView');
+  const emptyState = document.getElementById('emptyState');
+  const outputActions = document.getElementById('outputActions');
+  const tabs = document.querySelectorAll('.tab');
+
+  const SAMPLE = `When should retailers start planning Christmas campaigns?
+Most successful retailers begin planning between July and September to allow enough time for creative development, production and installation before peak trading.
+Why is early Christmas campaign planning important?
+Early planning reduces production pressure, improves supplier availability and gives businesses more flexibility when launching seasonal campaigns.
+What should a Christmas retail campaign include?
+A complete campaign may include window graphics, wall graphics, point of sale displays, wayfinding signage and consistent branding throughout the store.
+How can Christmas graphics increase retail footfall?
+Professional graphics create stronger first impressions, attract attention from passing shoppers and support a more engaging in store experience.
+Can Christmas graphics be installed across multiple stores?
+Yes. Many retailers coordinate seasonal graphics across multiple locations to maintain consistent branding and customer experience.`;
+
+  let currentPairs = [];
+  let currentSchema = null;
+
+  function updateInputCount(){
+    const lines = inputArea.value.split('\n').filter(l => l.trim().length > 0);
+    inputCount.textContent = lines.length + ' line' + (lines.length === 1 ? '' : 's');
+  }
+  inputArea.addEventListener('input', updateInputCount);
+  updateInputCount();
+
+  function parsePairs(raw){
+    const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const pairs = [];
+    for (let i = 0; i < lines.length - 1; i += 2){
+      const q = lines[i];
+      const a = lines[i+1];
+      if (q && a) pairs.push({ question: q, answer: a });
+    }
+    return pairs;
+  }
+
+  function escapeHtml(str){
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function buildSchema(pairs){
+    return {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": pairs.map(p => ({
+        "@type": "Question",
+        "name": p.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": p.answer
+        }
+      }))
+    };
+  }
+
+  function syntaxHighlight(jsonString){
+    const escaped = escapeHtml(jsonString);
+    return escaped.replace(/(&quot;.*?&quot;)(\s*:)?/g, function(match, str, colon){
+      const cls = colon ? 'jkey' : 'jstr';
+      return '<span class="' + cls + '">' + str + '</span>' + (colon ? colon : '');
+    });
+  }
+
+  function renderCards(pairs){
+    cardsView.innerHTML = '';
+    if (pairs.length === 0){
+      cardsView.appendChild(emptyState);
+      emptyState.classList.remove('hidden');
+      return;
+    }
+    pairs.forEach((p, i) => {
+      const card = document.createElement('div');
+      card.className = 'qa-card';
+      card.innerHTML =
+        '<span class="tag">Q' + String(i+1).padStart(2,'0') + '</span>' +
+        '<p class="q">' + escapeHtml(p.question) + '</p>' +
+        '<p class="a">' + escapeHtml(p.answer) + '</p>';
+      cardsView.appendChild(card);
+    });
+  }
+
+  function setStatus(msg, isError){
+    statusLine.textContent = msg;
+    statusLine.classList.toggle('err', !!isError);
+  }
+
+  function generate(){
+    const raw = inputArea.value;
+    const pairs = parsePairs(raw);
+
+    if (raw.trim().length === 0){
+      setStatus('Paste some questions and answers first.', true);
+      currentPairs = [];
+      currentSchema = null;
+      renderCards([]);
+      jsonView.innerHTML = '';
+      outputCount.textContent = '0 pairs';
+      outputActions.style.display = 'none';
+      return;
+    }
+
+    const nonEmptyLineCount = raw.split('\n').filter(l => l.trim().length > 0).length;
+    if (nonEmptyLineCount % 2 !== 0){
+      setStatus('Odd number of lines detected — the last question may be missing its answer. It was skipped.', true);
+    } else {
+      setStatus(pairs.length + ' question' + (pairs.length === 1 ? '' : 's') + ' parsed successfully.', false);
+    }
+
+    currentPairs = pairs;
+    currentSchema = buildSchema(pairs);
+
+    outputCount.textContent = pairs.length + ' pair' + (pairs.length === 1 ? '' : 's');
+    renderCards(pairs);
+    jsonView.innerHTML = syntaxHighlight(JSON.stringify(currentSchema, null, 2));
+    outputActions.style.display = pairs.length > 0 ? 'flex' : 'none';
+  }
+
+  document.getElementById('generateBtn').addEventListener('click', generate);
+
+  document.getElementById('loadSampleBtn').addEventListener('click', function(){
+    inputArea.value = SAMPLE;
+    updateInputCount();
+    generate();
+  });
+
+  document.getElementById('clearBtn').addEventListener('click', function(){
+    inputArea.value = '';
+    updateInputCount();
+    setStatus('');
+    currentPairs = [];
+    currentSchema = null;
+    outputCount.textContent = '0 pairs';
+    jsonView.innerHTML = '';
+    outputActions.style.display = 'none';
+    renderCards([]);
+  });
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function(){
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const which = tab.getAttribute('data-tab');
+      if (which === 'json'){
+        cardsView.classList.add('hidden');
+        jsonView.classList.remove('hidden');
+        document.getElementById('outputHeading').textContent = 'JSON-LD output';
+      } else {
+        jsonView.classList.add('hidden');
+        cardsView.classList.remove('hidden');
+        document.getElementById('outputHeading').textContent = 'Parsed pairs';
+      }
+    });
+  });
+
+  async function copyText(text, btn, label){
+    try{
+      await navigator.clipboard.writeText(text);
+      const original = btn.textContent;
+      btn.textContent = label || 'Copied!';
+      setTimeout(() => { btn.textContent = original; }, 1600);
+    }catch(e){
+      setStatus('Could not copy automatically — please select and copy manually.', true);
+    }
+  }
+
+  document.getElementById('copyBtn').addEventListener('click', function(){
+    if (!currentSchema) return;
+    copyText(JSON.stringify(currentSchema, null, 2), this, 'Copied!');
+  });
+
+  document.getElementById('copyScriptBtn').addEventListener('click', function(){
+    if (!currentSchema) return;
+    const scriptTag = '<script type="application/ld+json">\n' + JSON.stringify(currentSchema, null, 2) + '\n<\/script>';
+    copyText(scriptTag, this, 'Copied!');
+  });
+
+  document.getElementById('downloadBtn').addEventListener('click', function(){
+    if (!currentSchema) return;
+    const blob = new Blob([JSON.stringify(currentSchema, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'faq-schema.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+})();
+</script>
+
+</body>
+</html>
